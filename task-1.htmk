@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion with Air Resistance</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Моделирование движения тела с сопротивлением воздуха</h1>
+
+    <section id="methodExplanation">
+        <h2>Обоснование выбора метода</h2>
+        <p>
+            Для численного решения задачи о движении тела с сопротивлением воздуха был выбран <strong>метод Эйлера</strong>:
+        </p>
+        <ul>
+            <li><strong>Простота реализации:</strong> Метод Эйлера не требует сложных вычислений, что позволяет легко реализовать его для базовых расчетов.</li>
+            <li><strong>Точность при малых шагах:</strong> При использовании шага времени 0.01 с, метод обеспечивает достаточную точность для этой задачи.</li>
+            <li><strong>Учет дополнительных сил:</strong> Метод легко адаптируется для учета сопротивления воздуха, зависящего от скорости.</li>
+            <li><strong>Гибкость для нелинейных эффектов:</strong> Метод позволяет учесть нелинейное сопротивление, которое играет роль в данной задаче.</li>
+        </ul>
+    </section>
+
+    <form id="inputForm">
+        <label for="velocity">Начальная скорость (м/с):</label>
+        <input type="number" id="velocity" required><br><br>
+
+        <label for="angle">Угол к горизонту (°):</label>
+        <input type="number" id="angle" required><br><br>
+
+        <label for="height">Высота (м):</label>
+        <input type="number" id="height" required><br><br>
+
+        <label for="resistance">Коэффициент сопротивления (k):</label>
+        <input type="number" id="resistance" step="0.01" required><br><br>
+
+        <button type="button" onclick="simulate()">Рассчитать</button>
+    </form>
+
+    <div id="trajectoryPlot" style="width:100%; max-width:700px; height:400px;"></div>
+    <div id="speedPlot" style="width:100%; max-width:700px; height:400px;"></div>
+    <div id="coordinatesPlot" style="width:100%; max-width:700px; height:400px;"></div>
+
+    <script>
+        function simulate() {
+            const v0 = parseFloat(document.getElementById('velocity').value);
+            const angle = parseFloat(document.getElementById('angle').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const k = parseFloat(document.getElementById('resistance').value);
+
+            const angleRad = angle * Math.PI / 180;
+            const g = 9.81;
+
+            let x = 0, y = height;
+            let vx = v0 * Math.cos(angleRad);
+            let vy = v0 * Math.sin(angleRad);
+
+            const dt = 0.01;
+            let t = 0;
+
+            const x_vals = [];
+            const y_vals = [];
+            const v_vals = [];
+            const t_vals = [];
+
+            while (y >= 0) {
+                x_vals.push(x);
+                y_vals.push(y);
+                v_vals.push(Math.sqrt(vx ** 2 + vy ** 2));
+                t_vals.push(t);
+
+                const ax = -k * vx;
+                const ay = -g - k * vy;
+
+                vx += ax * dt;
+                vy += ay * dt;
+                x += vx * dt;
+                y += vy * dt;
+                t += dt;
+            }
+
+            Plotly.newPlot('trajectoryPlot', [{
+                x: x_vals, y: y_vals, mode: 'lines', name: 'Траектория'
+            }], { title: 'Траектория движения', xaxis: { title: 'x (м)' }, yaxis: { title: 'y (м)' }});
+
+            Plotly.newPlot('speedPlot', [{
+                x: t_vals, y: v_vals, mode: 'lines', name: 'Скорость'
+            }], { title: 'Зависимость скорости от времени', xaxis: { title: 'Время (с)' }, yaxis: { title: 'Скорость (м/с)' }});
+
+            Plotly.newPlot('coordinatesPlot', [
+                { x: t_vals, y: x_vals, mode: 'lines', name: 'x(t)' },
+                { x: t_vals, y: y_vals, mode: 'lines', name: 'y(t)' }
+            ], { title: 'Координаты x и y от времени', xaxis: { title: 'Время (с)' }, yaxis: { title: 'Координаты (м)' }});
+        }
+    </script>
+</body>
+</html>
