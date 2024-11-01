@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моделирование потенциального поля</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Визуализация потенциального поля</h1>
+
+    <form id="inputForm">
+        <label for="forceX">Сила Fx (x, y):</label>
+        <input type="text" id="forceX" value="-(x*y)" required><br><br>
+
+        <label for="forceY">Сила Fy (x, y):</label>
+        <input type="text" id="forceY" value="-(x^2 + y^2)" required><br><br>
+
+        <button type="button" onclick="visualizePotentialField()">Визуализировать</button>
+    </form>
+
+    <div id="potentialFieldPlot" style="width:100%; max-width:700px; height:400px;"></div>
+
+    <script>
+        function visualizePotentialField() {
+            const forceX = document.getElementById('forceX').value;
+            const forceY = document.getElementById('forceY').value;
+
+            const x = [];
+            const y = [];
+            const U = [];
+            const size = 100; // Размер решетки
+
+            for (let i = -5; i <= 5; i += 0.1) {
+                for (let j = -5; j <= 5; j += 0.1) {
+                    const U_value = evaluatePotential(i, j, forceX, forceY);
+                    x.push(i);
+                    y.push(j);
+                    U.push(U_value);
+                }
+            }
+
+            const trace = {
+                x: x,
+                y: y,
+                z: U,
+                type: 'contour',
+                colorscale: 'Viridis',
+                colorbar: { title: 'Потенциальная энергия U' },
+            };
+
+            const layout = {
+                title: 'Двумерное распределение потенциальной энергии',
+                xaxis: { title: 'x' },
+                yaxis: { title: 'y' },
+            };
+
+            Plotly.newPlot('potentialFieldPlot', [trace], layout);
+        }
+
+        function evaluatePotential(x, y, forceX, forceY) {
+            return eval(forceY.replace(/x/g, x).replace(/y/g, y)) + eval(forceX.replace(/x/g, x).replace(/y/g, y));
+        }
+    </script>
+</body>
+</html>
