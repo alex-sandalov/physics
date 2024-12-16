@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>alexandersandalov</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #fff;
+      font-family: Arial, sans-serif;
+      color: black;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background-color: #fff;
+      border: 1px solid #ccc;
+    }
+    #legend {
+      width: 100%;
+      text-align: center;
+      padding: 10px;
+      background-color: #f8f8f8;
+      border-bottom: 1px solid #ccc;
+    }
+    .legend-item {
+      margin: 5px;
+      display: inline-block;
+    }
+    .legend-color {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 1px solid #000;
+      margin-right: 5px;
+    }
+    .legend-arrows {
+      background-color: cyan;
+    }
+    .legend-potential {
+      background-color: orange;
+    }
+  </style>
+</head>
+<body>
+  <div id="legend">
+    <div class="legend-item">
+      <span class="legend-color legend-arrows"></span>Линии напряженности (векторы электрического поля)
+    </div>
+    <div class="legend-item">
+      <span class="legend-color legend-potential"></span>Эквипотенциальные поверхности (зоны одинакового потенциала)
+    </div>
+  </div>
+  <canvas id="fieldCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById('fieldCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 800;
+    canvas.height = 800;
+
+    const charges = [
+      { x: 200, y: 200, q: 5 },
+      { x: 600, y: 600, q: -5 },
+    ];
+    const k = 9e9;
+
+    function drawField() {
+      const step = 30;
+      const fieldScale = 500;
+
+      for (let x = 0; x < canvas.width; x += step) {
+        for (let y = 0; y < canvas.height; y += step) {
+          let Ex = 0, Ey = 0;
+          for (const charge of charges) {
+            const dx = x - charge.x;
+            const dy = y - charge.y;
+            const r2 = dx * dx + dy * dy;
+            const r = Math.sqrt(r2);
+
+            if (r > 2) {
+              const E = (k * charge.q) / r2;
+              Ex += E * (dx / r);
+              Ey += E * (dy / r);
+            }
+          }
+
+          const magnitude = Math.sqrt(Ex * Ex + Ey * Ey);
+          if (magnitude > 0) {
+            const normalizedEx = (Ex / magnitude) * fieldScale;
+            const normalizedEy = (Ey / magnitude) * fieldScale;
+
+            drawArrow(x, y, x + normalizedEx, y + normalizedEy, magnitude);
+          }
+        }
+      }
+    }
+
+    function drawEquipotentials() {
+      const potentialLevels = 10;
+      for (let i = -potentialLevels; i <= potentialLevels; i++) {
+        const potential = i * 1e5;
+        ctx.beginPath();
+        for (let x = 0; x < canvas.width; x += 5) {
+          for (let y = 0; y < canvas.height; y += 5) {
+            const V = calculatePotential(x, y);
+            if (Math.abs(V - potential) < 500) {
+              ctx.fillStyle = `orange`;
+              ctx.fillRect(x, y, 2, 2);
+            }
+          }
+        }
+        ctx.closePath();
+      }
+    }
+
+    function calculatePotential(x, y) {
+      let V = 0;
+      for (const charge of charges) {
+        const dx = x - charge.x;
+        const dy = y - charge.y;
+        const r = Math.sqrt(dx * dx + dy * dy);
+
+        if (r > 2) {
+          V += (k * charge.q) / r;
+        }
+      }
+      return V;
+    }
+
+    function drawArrow(x1, y1, x2, y2, magnitude) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const color = `cyan`;
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 5 * Math.cos(angle - Math.PI / 6), y2 - 5 * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - 5 * Math.cos(angle + Math.PI / 6), y2 - 5 * Math.sin(angle + Math.PI / 6));
+      ctx.lineTo(x2, y2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+
+    drawField();
+    drawEquipotentials();
+  </script>
+</body>
+</html>
