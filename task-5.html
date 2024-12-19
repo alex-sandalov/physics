@@ -197,8 +197,8 @@
       const torque = dipole.moment * (Ex * Math.sin(dipoleAngle) - Ey * Math.cos(dipoleAngle));
 
       ctx.fillStyle = "black";
-      ctx.fillText(`Сила: (${Ex.toFixed(2)}, ${Ey.toFixed(2)}) Н`, 10, 20);
-      ctx.fillText(`Момент силы: ${torque.toFixed(2)} Н·м`, 10, 40);
+      ctx.fillText(`Сила: (${Ex.toFixed(2)}, ${Ey.toFixed(2)}) Н`, 10, 40);
+      ctx.fillText(`Момент силы: ${torque.toFixed(2)} Н·м`, 10, 60);
     }
 
     function drawDipole() {
@@ -216,11 +216,18 @@
       ctx.fill();
     }
 
+    function drawInstruction() {
+      ctx.fillStyle = "black";
+      ctx.font = "16px Arial";
+      ctx.fillText("Сделайте клик для размещения диполя", canvas.width / 2 - 150, 20);
+    }
+
     function redraw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawField();
       drawEquipotentials();
       drawDipole();
+      drawInstruction();
       calculateDipoleForces();
     }
 
