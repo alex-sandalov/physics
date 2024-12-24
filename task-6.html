@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Граничные условия для диэлектриков</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid black;
+            margin-top: 20px;
+        }
+        .controls {
+            margin: 20px;
+        }
+        .legend {
+            text-align: left;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .legend span {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 10px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Граничные условия для диэлектриков</h1>
+    <div class="controls">
+        <label>ε1 (диэлектрик 1): <input type="number" id="epsilon1" value="2" step="0.1"></label>
+        <label>ε2 (диэлектрик 2): <input type="number" id="epsilon2" value="4" step="0.1"></label>
+        <label>Модуль E1: <input type="number" id="e1_magnitude" value="100" step="1"></label>
+        <label>Угол E1 (°): <input type="number" id="theta1" value="45" step="1"></label>
+        <button onclick="visualize()">Визуализировать</button>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div class="legend">
+        <p><span style="background-color: blue;"></span> Синяя линия — электрическое поле E_1 в первой среде.</p>
+        <p><span style="background-color: red;"></span> Красная линия — электрическое поле E_2 во второй среде.</p>
+        <p><span style="background-color: green;"></span> Зелёная линия — нормальные компоненты электрического смещения D.</p>
+        <p><span style="background-color: gray;"></span> Серая пунктирная линия — проекция нормальных и тангенциальных компонент.</p>
+    </div>
+
+    <script>
+        function visualize() {
+            const epsilon1 = parseFloat(document.getElementById('epsilon1').value);
+            const epsilon2 = parseFloat(document.getElementById('epsilon2').value);
+            const e1Magnitude = parseFloat(document.getElementById('e1_magnitude').value);
+            const theta1Deg = parseFloat(document.getElementById('theta1').value);
+            const theta1 = (theta1Deg * Math.PI) / 180;
+            const e1n = e1Magnitude * Math.sin(theta1);
+            const e1t = e1Magnitude * Math.cos(theta1);
+            const e2t = e1t;
+            const e2n = (epsilon1 / epsilon2) * e1n;
+            const e2Magnitude = Math.sqrt(e2t ** 2 + e2n ** 2);
+            const theta2 = Math.atan2(e2n, e2t);
+            const d1n = epsilon1 * e1n;
+            const d2n = epsilon2 * e2n;
+
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const startX1 = canvas.width / 2 - 150;
+            const startY = canvas.height / 2;
+            const e1X = e1Magnitude * Math.cos(theta1) * 0.4;
+            const e1Y = -e1Magnitude * Math.sin(theta1) * 0.4;
+
+            ctx.beginPath();
+            ctx.moveTo(startX1, startY);
+            ctx.lineTo(startX1 + e1X, startY + e1Y);
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillText("E1", startX1 + e1X / 2 - 10, startY + e1Y / 2 - 10);
+
+            const startX2 = canvas.width / 2;
+            const e2X = e2Magnitude * Math.cos(theta2) * 0.4;
+            const e2Y = -e2Magnitude * Math.sin(theta2) * 0.4;
+
+            ctx.beginPath();
+            ctx.moveTo(startX2, startY);
+            ctx.lineTo(startX2 + e2X, startY + e2Y);
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillText("E2", startX2 + e2X / 2 + 10, startY + e2Y / 2 - 10);
+
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2 - 50, startY - d1n * 0.02);
+            ctx.lineTo(canvas.width / 2 + 50, startY - d2n * 0.02);
+            ctx.strokeStyle = 'green';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillText("D", canvas.width / 2 + 60, startY - Math.min(d1n, d2n) * 0.02 - 5);
+
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(startX1 + e1X, startY + e1Y);
+            ctx.lineTo(startX2, startY);
+            ctx.strokeStyle = 'gray';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+            ctx.font = '14px Arial';
+            ctx.fillStyle = 'black';
+            ctx.fillText("Граница раздела", canvas.width / 2 + 10, canvas.height / 2 - 10);
+            ctx.fillText("Среда 1 (ε1)", canvas.width / 4, 30);
+            ctx.fillText("Среда 2 (ε2)", 3 * canvas.width / 4, 30);
+        }
+    </script>
+</body>
+</html>
